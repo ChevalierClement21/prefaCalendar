@@ -15,12 +15,24 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('tours.index')" :active="request()->routeIs('tours.*')">
+                        {{ __('Tournées') }}
+                    </x-nav-link>
+                    @can('viewUsers')
+                    <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                        {{ __('Utilisateurs') }}
+                    </x-nav-link>
+                    @endcan
+                    @can('manageSectors')
                     <x-nav-link :href="route('admin.sectors.index')" :active="request()->routeIs('admin.sectors.*')">
                         {{ __('Secteurs') }}
                     </x-nav-link>
+                    @endcan
+                    @can('manageStreets')
                     <x-nav-link :href="route('admin.streets.index')" :active="request()->routeIs('admin.streets.*')">
                         {{ __('Rues') }}
                     </x-nav-link>
+                    @endcan
                 </div>
             </div>
 
@@ -76,12 +88,24 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('tours.index')" :active="request()->routeIs('tours.*')">
+                {{ __('Tournées') }}
+            </x-responsive-nav-link>
+            @can('viewUsers')
+            <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
+                {{ __('Utilisateurs') }}
+            </x-responsive-nav-link>
+            @endcan
+            @can('manageSectors')
             <x-responsive-nav-link :href="route('admin.sectors.index')" :active="request()->routeIs('admin.sectors.*')">
                 {{ __('Secteurs') }}
             </x-responsive-nav-link>
+            @endcan
+            @can('manageStreets')
             <x-responsive-nav-link :href="route('admin.streets.index')" :active="request()->routeIs('admin.streets.*')">
                 {{ __('Rues') }}
             </x-responsive-nav-link>
+            @endcan
         </div>
 
         <!-- Responsive Settings Options -->

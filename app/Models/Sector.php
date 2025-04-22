@@ -28,4 +28,12 @@ class Sector extends Model
     {
         return $this->hasMany(Street::class);
     }
+    
+    /**
+     * Get the tours for the sector.
+     */
+    public function tours(): HasMany
+    {
+        return $this->hasMany(Tour::class);
+    }
 }

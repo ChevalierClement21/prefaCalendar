@@ -41,12 +41,15 @@ class RegisteredUserController extends Controller
             'lastname' => $request->lastname,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'approved' => false,
         ]);
 
         event(new Registered($user));
 
-        Auth::login($user);
+        // Ne pas connecter l'utilisateur automatiquement
+        // Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect(route('login', absolute: false))
+            ->with('success', 'Votre compte a été créé avec succès. Veuillez attendre l\'approbation d\'un administrateur avant de pouvoir vous connecter.');
     }
 }
