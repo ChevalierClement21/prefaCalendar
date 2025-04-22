@@ -41,6 +41,8 @@ Route::middleware(['auth', 'verified', 'approved'])->group(function () {
         Route::get('/tours/{tour}', 'show')->name('tours.show');
         Route::post('/tours/{tour}/house-numbers', 'addHouseNumber')->name('tours.house-numbers.add');
         Route::patch('/tours/{tour}/house-numbers/{houseNumber}/status', 'updateHouseNumberStatus')->name('tours.house-numbers.status');
+        Route::get('/tours/{tour}/complete', 'showCompleteForm')->name('tours.complete-form');
+        Route::post('/tours/{tour}/complete', 'submitCompletion')->name('tours.submit-completion');
         Route::patch('/tours/{tour}/complete', 'complete')->name('tours.complete');
     });
 

@@ -9,13 +9,9 @@
                     {{ __('Retour') }}
                 </a>
                 @if ($tour->status === 'in_progress')
-                    <form action="{{ route('tours.complete', $tour) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir terminer cette tournée ?');">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-                            {{ __('Terminer la tournée') }}
-                        </button>
-                    </form>
+                    <a href="{{ route('tours.complete-form', $tour) }}" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 inline-block">
+                        {{ __('Terminer la tournée') }}
+                    </a>
                 @endif
             </div>
         </div>

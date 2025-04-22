@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Tour extends Model
 {
@@ -67,5 +68,13 @@ class Tour extends Model
     public function houseNumbers(): HasMany
     {
         return $this->hasMany(HouseNumber::class);
+    }
+
+    /**
+     * Get the completion record for the tour.
+     */
+    public function completion(): HasOne
+    {
+        return $this->hasOne(TourCompletion::class);
     }
 }
