@@ -1,61 +1,155 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# PrefaCalendar - Gestion de Tournées de Calendriers pour Pompiers
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+PrefaCalendar est une application web développée avec Laravel 12 qui permet aux pompiers de gérer efficacement leurs tournées de distribution de calendriers. L'application facilite l'organisation des secteurs, des rues et des numéros de maisons à visiter, ainsi que le suivi des ventes et la collecte des fonds.
 
-## About Laravel
+## Fonctionnalités
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Système d'authentification et d'autorisation** : Utilisation de Laravel Breeze pour l'authentification et Bouncer pour la gestion des rôles et permissions
+- **Gestion des utilisateurs** : Approbation des nouveaux utilisateurs par les administrateurs
+- **Organisation géographique** :
+  - Gestion des secteurs (zones géographiques)
+  - Gestion des rues par secteur
+  - Suivi des numéros de maisons à visiter
+- **Gestion des tournées** :
+  - Création et planification des tournées
+  - Attribution des tournées aux utilisateurs
+  - Suivi de l'état d'avancement des visites
+  - Identification des maisons à revisiter
+- **Bilan financier** :
+  - Enregistrement détaillé des ventes (nombre de calendriers)
+  - Comptabilisation des espèces (billets et pièces)
+  - Suivi des chèques reçus
+  - Calcul automatique des totaux
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Prérequis
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- PHP 8.2 ou supérieur
+- Composer
+- Node.js et NPM
+- Base de données (MySQL, PostgreSQL, SQLite)
 
-## Learning Laravel
+## Installation
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+1. **Cloner le dépôt**
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+```bash
+git clone <url-du-repository>
+cd prefaCalendar
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+2. **Installer les dépendances PHP**
 
-## Laravel Sponsors
+```bash
+composer install
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+3. **Installer les dépendances JavaScript**
 
-### Premium Partners
+```bash
+npm install
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development/)**
-- **[Active Logic](https://activelogic.com)**
+4. **Configurer l'environnement**
 
-## Contributing
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+5. **Configurer la base de données**
 
-## Code of Conduct
+Modifiez le fichier `.env` pour configurer l'accès à votre base de données :
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=prefacalendar
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-## Security Vulnerabilities
+6. **Exécuter les migrations et les seeders**
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+php artisan migrate --seed
+```
+
+7. **Compiler les assets**
+
+```bash
+npm run dev
+```
+
+8. **Démarrer le serveur de développement**
+
+```bash
+php artisan serve
+```
+
+Vous pouvez également utiliser la commande personnalisée définie dans `composer.json` :
+
+```bash
+composer dev
+```
+
+Cette commande exécute simultanément le serveur Laravel, la file d'attente, les logs et Vite.
+
+## Structure des rôles et permissions
+
+L'application utilise le package Bouncer pour gérer les rôles et les permissions :
+
+- **Administrateurs** : Peuvent gérer les utilisateurs, les secteurs, les rues et toutes les tournées
+- **Utilisateurs approuvés** : Peuvent créer et gérer leurs propres tournées et celles auxquelles ils sont assignés
+
+## Workflow de l'application
+
+1. Un administrateur crée des secteurs et des rues
+2. Les utilisateurs créent des tournées pour des secteurs spécifiques
+3. Les utilisateurs ajoutent des numéros de maisons à visiter pendant la tournée
+4. Les utilisateurs mettent à jour le statut des visites (à revisiter, visité, ignoré)
+5. À la fin de la tournée, les utilisateurs remplissent un formulaire détaillant les ventes et l'argent collecté
+6. Le système génère automatiquement un bilan financier de la tournée
+
+## Modèles de données
+
+- **User** : Informations sur les utilisateurs et leurs rôles
+- **Sector** : Zones géographiques
+- **Street** : Rues appartenant à un secteur
+- **Tour** : Tournées planifiées avec dates de début/fin et statut
+- **HouseNumber** : Numéros de maisons à visiter pendant une tournée
+- **TourCompletion** : Données financières et bilan de fin de tournée
+
+## Développement
+
+### Commandes utiles
+
+- **Exécuter les tests** :
+```bash
+php artisan test
+```
+
+- **Lancer l'environnement de développement complet** :
+```bash
+composer dev
+```
+
+### Architecture du code
+
+Le projet suit l'architecture MVC de Laravel :
+
+- **Controllers** : Gèrent la logique métier
+- **Models** : Définissent la structure des données et les relations
+- **Views** : Interfaces utilisateur (Blade)
+- **Routes** : Définition des points d'entrée de l'application
+- **Middleware** : Contrôle des accès et vérifications
+
+## Contribution
+
+1. Créez une branche pour votre fonctionnalité
+2. Committez vos changements
+3. Soumettez une pull request
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Ce projet est sous licence MIT.
