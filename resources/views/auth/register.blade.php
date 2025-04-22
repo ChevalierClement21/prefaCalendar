@@ -32,6 +32,9 @@
                             name="password"
                             required autocomplete="new-password" />
 
+            <div class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                Le mot de passe doit contenir au moins 10 caractères, incluant des majuscules, des minuscules, des chiffres et des caractères spéciaux.
+            </div>
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
@@ -48,11 +51,11 @@
 
         <div class="flex items-center justify-end mt-4">
             <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
+                {{ __('Déjà inscrit ?') }}
             </a>
 
             <x-primary-button class="ms-4">
-                {{ __('Register') }}
+                {{ __('S\'inscrire') }}
             </x-primary-button>
         </div>
     </form>

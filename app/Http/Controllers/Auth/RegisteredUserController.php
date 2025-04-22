@@ -33,7 +33,20 @@ class RegisteredUserController extends Controller
             'firstname' => ['required', 'string', 'max:255'],
             'lastname' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => ['required', 'confirmed', Rules\Password::min(10)->letters()->mixedCase()->numbers()->symbols()->uncompromised()],
+            // Renforcement des règles de mot de passe
+        ], [
+            'email.required' => 'L\'adresse email est obligatoire.',
+            'email.lowercase' => 'L\'adresse email doit être en minuscules.',
+            'email.email' => 'Veuillez entrer une adresse email valide.',
+            'email.unique' => 'Cette adresse email est déjà utilisée.',
+            'password.required' => 'Le mot de passe est obligatoire.',
+            'password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
+            'password.min' => 'Le mot de passe doit contenir au moins 10 caractères.',
+            'password.letters' => 'Le mot de passe doit contenir au moins une lettre.',
+            'password.mixed' => 'Le mot de passe doit contenir au moins une majuscule et une minuscule.',
+            'password.numbers' => 'Le mot de passe doit contenir au moins un chiffre.',
+            'password.symbols' => 'Le mot de passe doit contenir au moins un caractère spécial.',
         ]);
 
         $user = User::create([

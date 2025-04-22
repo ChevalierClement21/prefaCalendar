@@ -67,4 +67,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Tour::class, 'creator_id');
     }
+    
+    /**
+     * Set the user's email to lowercase.
+     */
+    public function setEmailAttribute($value)
+    {
+        $this->attributes['email'] = strtolower($value);
+    }
 }
