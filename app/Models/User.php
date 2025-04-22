@@ -6,11 +6,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Silber\Bouncer\Database\HasRolesAndAbilities;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRolesAndAbilities;
 
     /**
      * The attributes that are mass assignable.
@@ -18,9 +21,11 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'firstname',
+        'lastname',
         'email',
         'password',
+        'approved',
     ];
 
     /**
@@ -43,6 +48,31 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'approved' => 'boolean',
         ];
+    }
+    
+    /**
+     * Get the tours for the user.
+     */
+    public function tours(): BelongsToMany
+    {
+        return $this->belongsToMany(Tour::class, 'tour_user');
+    }
+    
+    /**
+     * Get the tours created by the user.
+     */
+    public function createdTours(): HasMany
+    {
+        return $this->hasMany(Tour::class, 'creator_id');
+    }
+    
+    /**
+     * Set the user's email to lowercase.
+     */
+    public function setEmailAttribute($value)
+    {
+        $this->attributes['email'] = strtolower($value);
     }
 }
