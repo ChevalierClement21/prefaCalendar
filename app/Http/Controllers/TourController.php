@@ -103,11 +103,16 @@ class TourController extends Controller
                 \Illuminate\Support\Facades\Log::info('Utilisateurs associés');
             }
         
-            // Récupérer les numéros de maisons à revisiter du même secteur
+            // Récupérer les numéros de maisons à revisiter du même secteur et de la même session si une session est spécifiée
             // Regrouper par street_id et number pour éviter les doublons
             $housesToRevisit = HouseNumber::where('status', 'to_revisit')
                 ->whereHas('tour', function ($query) use ($validated) {
                     $query->where('sector_id', $validated['sector_id']);
+                    
+                    // Filtrer par session si une session est spécifiée
+                    if (isset($validated['session_id'])) {
+                        $query->where('session_id', $validated['session_id']);
+                    }
                 })
                 ->whereHas('street', function ($query) use ($validated) {
                     $query->where('sector_id', $validated['sector_id']);
@@ -157,14 +162,31 @@ class TourController extends Controller
     {
         Gate::authorize('view-tour', $tour);
         
-        $tour->load(['sector', 'users', 'creator']);
+        $tour->load(['sector', 'users', 'creator', 'session']);
         $streets = Street::where('sector_id', $tour->sector_id)->get();
         $houseNumbers = HouseNumber::where('tour_id', $tour->id)
             ->with('street')
             ->get()
             ->groupBy('street_id');
+            
+        // Récupérer les numéros existants à revisiter de la même session (pour l'ajout facile)
+        $availableHouseNumbers = collect();
+        
+        if ($tour->session_id) {
+            // Rechercher les numéros de maison dans les autres tournées de la même session
+            $otherHouseNumbers = HouseNumber::whereHas('tour', function ($query) use ($tour) {
+                    $query->where('session_id', $tour->session_id)
+                          ->where('id', '!=', $tour->id); // Exclure la tournée actuelle
+                })
+                ->where('status', 'to_revisit')
+                ->with('street')
+                ->get();
+                
+            // Organiser les numéros par rue pour faciliter l'affichage
+            $availableHouseNumbers = $otherHouseNumbers->groupBy('street_id');
+        }
 
-        return view('tours.show', compact('tour', 'streets', 'houseNumbers'));
+        return view('tours.show', compact('tour', 'streets', 'houseNumbers', 'availableHouseNumbers'));
     }
 
     /**
@@ -178,6 +200,25 @@ class TourController extends Controller
             'number' => 'required|string|max:10',
             'notes' => 'nullable|string',
         ]);
+
+        // Vérifier si la tournée est associée à une session
+        // Si c'est le cas, nous utiliserons uniquement les numéros de rue de cette session
+        if ($tour->session_id) {
+            // Vérifier si ce numéro existe déjà dans une autre tournée de la même session
+            $existingNumber = HouseNumber::whereHas('tour', function ($query) use ($tour) {
+                $query->where('session_id', $tour->session_id)
+                      ->where('id', '!=', $tour->id); // Exclure la tournée actuelle
+            })
+            ->where('street_id', $validated['street_id'])
+            ->where('number', $validated['number'])
+            ->first();
+            
+            // Si ce numéro existe déjà dans une autre tournée de la même session, afficher un message
+            if ($existingNumber) {
+                return redirect()->route('tours.show', $tour)
+                    ->with('error', 'Ce numéro de maison est déjà présent dans une autre tournée de cette session.');
+            }
+        }
 
         HouseNumber::create([
             'tour_id' => $tour->id,

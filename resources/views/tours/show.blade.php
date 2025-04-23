@@ -26,6 +26,12 @@
                             {{ session('success') }}
                         </div>
                     @endif
+                    
+                    @if (session('error'))
+                        <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                            {{ session('error') }}
+                        </div>
+                    @endif
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Information sur la tournée -->
@@ -53,6 +59,9 @@
                                     <p><span class="font-medium">{{ __('Date de fin') }}:</span> {{ $tour->end_date->format('d/m/Y H:i') }}</p>
                                 @endif
                                 <p><span class="font-medium">{{ __('Créée par') }}:</span> {{ $tour->creator->firstname }} {{ $tour->creator->lastname }}</p>
+                                @if ($tour->session)
+                                    <p><span class="font-medium">{{ __('Session') }}:</span> {{ $tour->session->name }} ({{ $tour->session->year }})</p>
+                                @endif
                                 @if ($tour->notes)
                                     <p><span class="font-medium">{{ __('Notes') }}:</span> {{ $tour->notes }}</p>
                                 @endif
@@ -141,6 +150,25 @@
                                                         ">
                                                             {{ $houseNumber->number }}
                                                         </span>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @endif
+                                        
+                                        @if ($tour->session_id && isset($availableHouseNumbers[$street->id]) && count($availableHouseNumbers[$street->id]) > 0)
+                                            <div class="mt-2 mb-3">
+                                                <h5 class="text-sm font-medium text-gray-600">{{ __('Numéros existants dans cette session:') }}</h5>
+                                                <div class="flex flex-wrap gap-1 mt-1">
+                                                    @foreach ($availableHouseNumbers[$street->id] as $availableNumber)
+                                                        <form action="{{ route('tours.house-numbers.add', $tour) }}" method="POST" class="inline">
+                                                            @csrf
+                                                            <input type="hidden" name="street_id" value="{{ $street->id }}">
+                                                            <input type="hidden" name="number" value="{{ $availableNumber->number }}">
+                                                            <input type="hidden" name="notes" value="{{ $availableNumber->notes }}">
+                                                            <button type="submit" class="inline-block px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800 hover:bg-orange-200">
+                                                                {{ $availableNumber->number }}
+                                                            </button>
+                                                        </form>
                                                     @endforeach
                                                 </div>
                                             </div>
