@@ -9,8 +9,23 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <form action="{{ route('tours.store') }}" method="POST">
+                    @if ($errors->any())
+                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                            <strong class="font-bold">Erreurs!</strong>
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form action="{{ route('tours.store') }}" method="POST" id="create-tour-form">
                         @csrf
+                        
+                        @if(isset($activeSession))
+                            <input type="hidden" name="session_id" value="{{ $activeSession->id }}">
+                        @endif
 
                         <div class="mb-4">
                             <x-input-label for="name" :value="__('Nom de la tournée')" />
@@ -58,7 +73,7 @@
                             <a href="{{ route('tours.index') }}" class="text-gray-600 hover:text-gray-900 mr-4">
                                 {{ __('Annuler') }}
                             </a>
-                            <x-primary-button>
+                            <x-primary-button type="submit" id="submit-btn">
                                 {{ __('Créer la tournée') }}
                             </x-primary-button>
                         </div>
@@ -67,4 +82,17 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('create-tour-form');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            form.addEventListener('submit', function(e) {
+                console.log('Formulaire soumis');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = 'Création en cours...';
+            });
+        });
+    </script>
 </x-app-layout>

@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Tour;
+use App\Observers\TourObserver;
 use Illuminate\Support\ServiceProvider;
 use Silber\Bouncer\BouncerFacade as Bouncer;
 use Illuminate\Support\Facades\Gate;
@@ -21,6 +23,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Enregistrer l'observateur de tournée
+        Tour::observe(TourObserver::class);
+        
         // Définir des autorisations accessibles à tous les utilisateurs authentifiés
         Gate::define('view-any-tours', function ($user) {
             return true; // Tous les utilisateurs authentifiés peuvent voir la liste des tournées
@@ -57,6 +62,7 @@ class AppServiceProvider extends ServiceProvider
         Bouncer::allow('admin')->to('manageRoles');
         Bouncer::allow('admin')->to('manageSectors');
         Bouncer::allow('admin')->to('manageStreets');
+        Bouncer::allow('admin')->to('manageSessions');
         
         // Ajouter la définition explicite des gates pour les permissions d'administration
         Gate::define('approveUsers', function ($user) {
@@ -72,6 +78,10 @@ class AppServiceProvider extends ServiceProvider
         });
         
         Gate::define('manageStreets', function ($user) {
+            return $user->isAn('admin');
+        });
+        
+        Gate::define('manageSessions', function ($user) {
             return $user->isAn('admin');
         });
     }

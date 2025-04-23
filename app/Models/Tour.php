@@ -22,6 +22,7 @@ class Tour extends Model
         'name',
         'sector_id',
         'creator_id',
+        'session_id',
         'status',
         'start_date',
         'end_date',
@@ -76,5 +77,13 @@ class Tour extends Model
     public function completion(): HasOne
     {
         return $this->hasOne(TourCompletion::class);
+    }
+
+    /**
+     * Get the session that owns the tour.
+     */
+    public function session(): BelongsTo
+    {
+        return $this->belongsTo(Session::class);
     }
 }

@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             SectorSeeder::class,
             StreetSeeder::class,
             UserSeeder::class,
+            SessionSeeder::class,
         ]);
     }
 }
