@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CompletedStreet;
 use App\Models\HouseNumber;
 use App\Models\Sector;
 use App\Models\Session;
@@ -185,8 +186,16 @@ class TourController extends Controller
             // Organiser les numéros par rue pour faciliter l'affichage
             $availableHouseNumbers = $otherHouseNumbers->groupBy('street_id');
         }
+        
+        // Récupérer les rues marquées comme complétées pour cette session
+        $completedStreets = [];
+        if ($tour->session_id) {
+            $completedStreets = CompletedStreet::where('session_id', $tour->session_id)
+                ->pluck('street_id')
+                ->toArray();
+        }
 
-        return view('tours.show', compact('tour', 'streets', 'houseNumbers', 'availableHouseNumbers'));
+        return view('tours.show', compact('tour', 'streets', 'houseNumbers', 'availableHouseNumbers', 'completedStreets'));
     }
 
     /**
@@ -371,5 +380,56 @@ class TourController extends Controller
 
         return redirect()->route('tours.index')
             ->with('success', 'Tournée terminée avec succès.');
+    }
+    
+    /**
+     * Mark a street as completed in the tour and for the session
+     */
+    public function markStreetCompleted(Request $request, Tour $tour, Street $street): RedirectResponse
+    {
+        Gate::authorize('view-tour', $tour);
+        
+        // Vérifier si une session est associée à cette tournée
+        if (!$tour->session_id) {
+            return redirect()->route('tours.show', $tour)
+                ->with('error', "Impossible de marquer cette rue comme terminée car la tournée n'est pas associée à une session.");
+        }
+        
+        // Vérifier si la rue est déjà marquée comme complétée dans cette session
+        $completedStreet = CompletedStreet::where('session_id', $tour->session_id)
+            ->where('street_id', $street->id)
+            ->first();
+        
+        if ($completedStreet) {
+            // Si la rue est déjà marquée comme complétée, on la supprime (toggle)
+            $completedStreet->delete();
+            
+            // Journaliser l'action
+            \Illuminate\Support\Facades\Log::info(
+                "Rue marquée comme non terminée: {$street->name} dans la tournée {$tour->name} " .
+                "et pour la session {$tour->session->name} par l'utilisateur " . Auth::id()
+            );
+            
+            return redirect()->route('tours.show', $tour)
+                ->with('success', "La rue {$street->name} a été marquée comme non terminée pour cette session.");
+        } else {
+            // Créer un enregistrement pour indiquer que la rue est complétée pour cette session
+            CompletedStreet::create([
+                'tour_id' => $tour->id,
+                'street_id' => $street->id,
+                'session_id' => $tour->session_id,
+                'completed_by' => Auth::id(),
+                'notes' => $request->input('notes')
+            ]);
+            
+            // Journaliser l'action
+            \Illuminate\Support\Facades\Log::info(
+                "Rue marquée comme terminée: {$street->name} dans la tournée {$tour->name} " .
+                "et pour la session {$tour->session->name} par l'utilisateur " . Auth::id()
+            );
+            
+            return redirect()->route('tours.show', $tour)
+                ->with('success', "La rue {$street->name} a été marquée comme terminée pour cette session.");
+        }
     }
 }

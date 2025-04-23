@@ -44,6 +44,7 @@ Route::middleware(['auth', 'verified', 'approved'])->group(function () {
         Route::get('/tours/{tour}/complete', 'showCompleteForm')->name('tours.complete-form');
         Route::post('/tours/{tour}/complete', 'submitCompletion')->name('tours.submit-completion');
         Route::patch('/tours/{tour}/complete', 'complete')->name('tours.complete');
+        Route::post('/tours/{tour}/streets/{street}/mark-completed', 'markStreetCompleted')->name('tours.streets.mark-completed');
     });
 
     // Users routes supprimées
