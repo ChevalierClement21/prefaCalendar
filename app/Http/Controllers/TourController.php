@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CompletedStreet;
 use App\Models\HouseNumber;
 use App\Models\Sector;
 use App\Models\Session;
@@ -103,11 +104,16 @@ class TourController extends Controller
                 \Illuminate\Support\Facades\Log::info('Utilisateurs associés');
             }
         
-            // Récupérer les numéros de maisons à revisiter du même secteur
+            // Récupérer les numéros de maisons à revisiter du même secteur et de la même session si une session est spécifiée
             // Regrouper par street_id et number pour éviter les doublons
             $housesToRevisit = HouseNumber::where('status', 'to_revisit')
                 ->whereHas('tour', function ($query) use ($validated) {
                     $query->where('sector_id', $validated['sector_id']);
+                    
+                    // Filtrer par session si une session est spécifiée
+                    if (isset($validated['session_id'])) {
+                        $query->where('session_id', $validated['session_id']);
+                    }
                 })
                 ->whereHas('street', function ($query) use ($validated) {
                     $query->where('sector_id', $validated['sector_id']);
@@ -157,14 +163,39 @@ class TourController extends Controller
     {
         Gate::authorize('view-tour', $tour);
         
-        $tour->load(['sector', 'users', 'creator']);
+        $tour->load(['sector', 'users', 'creator', 'session']);
         $streets = Street::where('sector_id', $tour->sector_id)->get();
         $houseNumbers = HouseNumber::where('tour_id', $tour->id)
             ->with('street')
             ->get()
             ->groupBy('street_id');
+            
+        // Récupérer les numéros existants à revisiter de la même session (pour l'ajout facile)
+        $availableHouseNumbers = collect();
+        
+        if ($tour->session_id) {
+            // Rechercher les numéros de maison dans les autres tournées de la même session
+            $otherHouseNumbers = HouseNumber::whereHas('tour', function ($query) use ($tour) {
+                    $query->where('session_id', $tour->session_id)
+                          ->where('id', '!=', $tour->id); // Exclure la tournée actuelle
+                })
+                ->where('status', 'to_revisit')
+                ->with('street')
+                ->get();
+                
+            // Organiser les numéros par rue pour faciliter l'affichage
+            $availableHouseNumbers = $otherHouseNumbers->groupBy('street_id');
+        }
+        
+        // Récupérer les rues marquées comme complétées pour cette session
+        $completedStreets = [];
+        if ($tour->session_id) {
+            $completedStreets = CompletedStreet::where('session_id', $tour->session_id)
+                ->pluck('street_id')
+                ->toArray();
+        }
 
-        return view('tours.show', compact('tour', 'streets', 'houseNumbers'));
+        return view('tours.show', compact('tour', 'streets', 'houseNumbers', 'availableHouseNumbers', 'completedStreets'));
     }
 
     /**
@@ -178,6 +209,25 @@ class TourController extends Controller
             'number' => 'required|string|max:10',
             'notes' => 'nullable|string',
         ]);
+
+        // Vérifier si la tournée est associée à une session
+        // Si c'est le cas, nous utiliserons uniquement les numéros de rue de cette session
+        if ($tour->session_id) {
+            // Vérifier si ce numéro existe déjà dans une autre tournée de la même session
+            $existingNumber = HouseNumber::whereHas('tour', function ($query) use ($tour) {
+                $query->where('session_id', $tour->session_id)
+                      ->where('id', '!=', $tour->id); // Exclure la tournée actuelle
+            })
+            ->where('street_id', $validated['street_id'])
+            ->where('number', $validated['number'])
+            ->first();
+            
+            // Si ce numéro existe déjà dans une autre tournée de la même session, afficher un message
+            if ($existingNumber) {
+                return redirect()->route('tours.show', $tour)
+                    ->with('error', 'Ce numéro de maison est déjà présent dans une autre tournée de cette session.');
+            }
+        }
 
         HouseNumber::create([
             'tour_id' => $tour->id,
@@ -330,5 +380,56 @@ class TourController extends Controller
 
         return redirect()->route('tours.index')
             ->with('success', 'Tournée terminée avec succès.');
+    }
+    
+    /**
+     * Mark a street as completed in the tour and for the session
+     */
+    public function markStreetCompleted(Request $request, Tour $tour, Street $street): RedirectResponse
+    {
+        Gate::authorize('view-tour', $tour);
+        
+        // Vérifier si une session est associée à cette tournée
+        if (!$tour->session_id) {
+            return redirect()->route('tours.show', $tour)
+                ->with('error', "Impossible de marquer cette rue comme terminée car la tournée n'est pas associée à une session.");
+        }
+        
+        // Vérifier si la rue est déjà marquée comme complétée dans cette session
+        $completedStreet = CompletedStreet::where('session_id', $tour->session_id)
+            ->where('street_id', $street->id)
+            ->first();
+        
+        if ($completedStreet) {
+            // Si la rue est déjà marquée comme complétée, on la supprime (toggle)
+            $completedStreet->delete();
+            
+            // Journaliser l'action
+            \Illuminate\Support\Facades\Log::info(
+                "Rue marquée comme non terminée: {$street->name} dans la tournée {$tour->name} " .
+                "et pour la session {$tour->session->name} par l'utilisateur " . Auth::id()
+            );
+            
+            return redirect()->route('tours.show', $tour)
+                ->with('success', "La rue {$street->name} a été marquée comme non terminée pour cette session.");
+        } else {
+            // Créer un enregistrement pour indiquer que la rue est complétée pour cette session
+            CompletedStreet::create([
+                'tour_id' => $tour->id,
+                'street_id' => $street->id,
+                'session_id' => $tour->session_id,
+                'completed_by' => Auth::id(),
+                'notes' => $request->input('notes')
+            ]);
+            
+            // Journaliser l'action
+            \Illuminate\Support\Facades\Log::info(
+                "Rue marquée comme terminée: {$street->name} dans la tournée {$tour->name} " .
+                "et pour la session {$tour->session->name} par l'utilisateur " . Auth::id()
+            );
+            
+            return redirect()->route('tours.show', $tour)
+                ->with('success', "La rue {$street->name} a été marquée comme terminée pour cette session.");
+        }
     }
 }

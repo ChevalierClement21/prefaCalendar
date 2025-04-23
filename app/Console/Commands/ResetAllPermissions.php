@@ -81,13 +81,12 @@ class ResetAllPermissions extends Command
 
         $this->info('Capacités créées.');
 
-        // Attribuer les capacités aux rôles
+        // Attribuer les capacités au rôle utilisateur standard
         Bouncer::allow('user')->to(['view-any-tours', 'create-tour', 'view-tour', 'update-tour', 
             'add-house-number', 'update-house-number-status', 'complete-tour']);
 
-        Bouncer::allow('admin')->to(['admin', 'viewUsers', 'approveUsers', 'manageRoles', 
-            'manageSectors', 'manageStreets', 'view-any-tours', 'create-tour', 'view-tour', 
-            'update-tour', 'add-house-number', 'update-house-number-status', 'complete-tour']);
+        // Le rôle admin a automatiquement toutes les permissions grâce au BouncerServiceProvider
+        Bouncer::allow('admin')->everything();
 
         $this->info('Capacités attribuées aux rôles.');
 

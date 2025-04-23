@@ -26,6 +26,12 @@
                             {{ session('success') }}
                         </div>
                     @endif
+                    
+                    @if (session('error'))
+                        <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                            {{ session('error') }}
+                        </div>
+                    @endif
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Information sur la tournée -->
@@ -53,6 +59,9 @@
                                     <p><span class="font-medium">{{ __('Date de fin') }}:</span> {{ $tour->end_date->format('d/m/Y H:i') }}</p>
                                 @endif
                                 <p><span class="font-medium">{{ __('Créée par') }}:</span> {{ $tour->creator->firstname }} {{ $tour->creator->lastname }}</p>
+                                @if ($tour->session)
+                                    <p><span class="font-medium">{{ __('Session') }}:</span> {{ $tour->session->name }} ({{ $tour->session->year }})</p>
+                                @endif
                                 @if ($tour->notes)
                                     <p><span class="font-medium">{{ __('Notes') }}:</span> {{ $tour->notes }}</p>
                                 @endif
@@ -125,13 +134,53 @@
                             <h3 class="text-lg font-medium mb-4">{{ __('Rues du secteur') }}</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 @foreach ($streets as $street)
-                                    <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow">
-                                        <h4 class="font-medium text-gray-900">{{ $street->name }}</h4>
-                                        <p class="text-sm text-gray-600">{{ $street->postal_code }} {{ $street->city }}</p>
+                                    <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow {{ in_array($street->id, $completedStreets) ? 'border-green-300 bg-green-50' : '' }}">
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <h4 class="font-medium text-gray-900">{{ $street->name }}</h4>
+                                                <p class="text-sm text-gray-600">{{ $street->postal_code }} {{ $street->city }}</p>
+                                            </div>
+                                            <form action="{{ route('tours.streets.mark-completed', [$tour, $street]) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" 
+                                                    class="px-3 py-1 {{ in_array($street->id, $completedStreets) ? 'bg-green-500 hover:bg-green-600' : 'bg-yellow-500 hover:bg-yellow-600' }} text-white rounded-md text-xs">
+                                                    @if (in_array($street->id, $completedStreets))
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="inline-block h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                        {{ __('Rue terminée') }}
+                                                    @else
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="inline-block h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        {{ __('Marquer comme terminée') }}
+                                                    @endif
+                                                </button>
+                                            </form>
+                                        </div>
                                         
                                         @if (isset($houseNumbers[$street->id]))
                                             <div class="mt-2 mb-3">
-                                                <h5 class="text-sm font-medium text-gray-600">{{ __('Numéros enregistrés:') }}</h5>
+                                                @php
+                                                    $toRevisitCount = 0;
+                                                    foreach ($houseNumbers[$street->id] as $hn) {
+                                                        if ($hn->status === 'to_revisit') {
+                                                            $toRevisitCount++;
+                                                        }
+                                                    }
+                                                @endphp
+                                                <h5 class="text-sm font-medium text-gray-600">
+                                                    {{ __('Numéros enregistrés:') }}
+                                                    @if ($toRevisitCount > 0)
+                                                        <span class="ml-2 inline-block px-2 py-0.5 text-xs bg-yellow-100 text-yellow-800 rounded-full">
+                                                            {{ $toRevisitCount }} {{ __('restant') }}{{ $toRevisitCount > 1 ? 's' : '' }}
+                                                        </span>
+                                                    @else
+                                                        <span class="ml-2 inline-block px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">
+                                                            {{ __('Terminé') }}
+                                                        </span>
+                                                    @endif
+                                                </h5>
                                                 <div class="flex flex-wrap gap-1 mt-1">
                                                     @foreach ($houseNumbers[$street->id] as $houseNumber)
                                                         <span class="inline-block px-2 py-1 text-xs rounded-full
@@ -141,6 +190,25 @@
                                                         ">
                                                             {{ $houseNumber->number }}
                                                         </span>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @endif
+                                        
+                                        @if ($tour->session_id && isset($availableHouseNumbers[$street->id]) && count($availableHouseNumbers[$street->id]) > 0)
+                                            <div class="mt-2 mb-3">
+                                                <h5 class="text-sm font-medium text-gray-600">{{ __('Numéros existants dans cette session:') }}</h5>
+                                                <div class="flex flex-wrap gap-1 mt-1">
+                                                    @foreach ($availableHouseNumbers[$street->id] as $availableNumber)
+                                                        <form action="{{ route('tours.house-numbers.add', $tour) }}" method="POST" class="inline">
+                                                            @csrf
+                                                            <input type="hidden" name="street_id" value="{{ $street->id }}">
+                                                            <input type="hidden" name="number" value="{{ $availableNumber->number }}">
+                                                            <input type="hidden" name="notes" value="{{ $availableNumber->notes }}">
+                                                            <button type="submit" class="inline-block px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800 hover:bg-orange-200">
+                                                                {{ $availableNumber->number }}
+                                                            </button>
+                                                        </form>
                                                     @endforeach
                                                 </div>
                                             </div>

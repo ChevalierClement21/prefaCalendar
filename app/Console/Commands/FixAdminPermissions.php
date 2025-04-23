@@ -68,20 +68,16 @@ class FixAdminPermissions extends Command
     private function fixPermissions(User $user)
     {
         // S'assurer que l'utilisateur a le rôle admin
+        // Le rôle 'admin' accorde automatiquement toutes les permissions via BouncerServiceProvider
         Bouncer::assign('admin')->to($user);
-
-        // Accorder toutes les autorisations administratives
-        Bouncer::allow($user)->to('viewUsers');
-        Bouncer::allow($user)->to('approveUsers');
-        Bouncer::allow($user)->to('manageRoles');
-        Bouncer::allow($user)->to('manageSectors');
-        Bouncer::allow($user)->to('manageStreets');
-        Bouncer::allow($user)->to('admin');
 
         // S'assurer que l'utilisateur est approuvé
         if (!$user->approved) {
             $user->approved = true;
             $user->save();
         }
+        
+        // Rafraîchir les autorisations pour s'assurer que les changements sont pris en compte
+        Bouncer::refresh();
     }
 }

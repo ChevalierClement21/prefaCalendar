@@ -24,7 +24,15 @@
                         @csrf
                         
                         @if(isset($activeSession))
-                            <input type="hidden" name="session_id" value="{{ $activeSession->id }}">
+                            <div class="mb-4 p-4 bg-blue-50 rounded-md border border-blue-200">
+                                <p class="text-blue-700 font-medium">{{ __('Session active:') }} {{ $activeSession->name }} ({{ $activeSession->year }})</p>
+                                <p class="text-blue-600 text-sm mt-1">{{ __('Cette tournée sera associée à la session active ci-dessus.') }}</p>
+                                <input type="hidden" name="session_id" value="{{ $activeSession->id }}">
+                            </div>
+                        @else
+                            <div class="mb-4 p-4 bg-yellow-50 rounded-md border border-yellow-200">
+                                <p class="text-yellow-700">{{ __('Aucune session active. Cette tournée ne sera associée à aucune session.') }}</p>
+                            </div>
                         @endif
 
                         <div class="mb-4">
