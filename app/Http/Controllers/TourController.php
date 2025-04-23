@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\HouseNumber;
 use App\Models\Sector;
+use App\Models\Session;
 use App\Models\Street;
 use App\Models\Tour;
 use App\Models\TourCompletion;
@@ -50,7 +51,10 @@ class TourController extends Controller
             ->where('id', '!=', Auth::id())
             ->get();
         
-        return view('tours.create', compact('sectors', 'users'));
+        // Récupérer la session active
+        $activeSession = Session::where('is_active', true)->first();
+        
+        return view('tours.create', compact('sectors', 'users', 'activeSession'));
     }
 
     /**
@@ -58,63 +62,92 @@ class TourController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        Gate::authorize('create-tour');
+        \Illuminate\Support\Facades\Log::info('Méthode store appelée');
         
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'sector_id' => 'required|exists:sectors,id',
-            'user_ids' => 'nullable|array',
-            'user_ids.*' => 'exists:users,id',
-            'notes' => 'nullable|string',
-        ]);
-
-        $tour = Tour::create([
-            'name' => $validated['name'],
-            'sector_id' => $validated['sector_id'],
-            'creator_id' => Auth::id(),
-            'status' => 'in_progress',
-            'start_date' => now(),
-            'notes' => $validated['notes'] ?? null,
-        ]);
-
-        if (isset($validated['user_ids'])) {
-            $tour->users()->attach($validated['user_ids']);
-        }
-        
-        // Récupérer les numéros de maisons à revisiter du même secteur
-        // Regrouper par street_id et number pour éviter les doublons
-        $housesToRevisit = HouseNumber::where('status', 'to_revisit')
-            ->whereHas('tour', function ($query) use ($validated) {
-                $query->where('sector_id', $validated['sector_id']);
-            })
-            ->whereHas('street', function ($query) use ($validated) {
-                $query->where('sector_id', $validated['sector_id']);
-            })
-            ->select('street_id', 'number', 'notes')
-            ->distinct()
-            ->get();
+        try {
+            Gate::authorize('create-tour');
             
-        // Vérifier si chaque maison à revisiter existe déjà dans la nouvelle tournée avant de la créer
-        foreach ($housesToRevisit as $house) {
-            // Vérifier si cette combinaison n'existe pas déjà dans la nouvelle tournée
-            $exists = HouseNumber::where('tour_id', $tour->id)
-                ->where('street_id', $house->street_id)
-                ->where('number', $house->number)
-                ->exists();
-                
-            if (!$exists) {
-                HouseNumber::create([
-                    'tour_id' => $tour->id,
-                    'street_id' => $house->street_id,
-                    'number' => $house->number,
-                    'status' => 'to_revisit',
-                    'notes' => $house->notes
-                ]);
-            }
-        }
+            \Illuminate\Support\Facades\Log::info('Données du formulaire:', $request->all());
+            
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'sector_id' => 'required|exists:sectors,id',
+                'session_id' => 'nullable|exists:calendar_sessions,id',
+                'user_ids' => 'nullable|array',
+                'user_ids.*' => 'exists:users,id',
+                'notes' => 'nullable|string',
+            ]);
+            
+            \Illuminate\Support\Facades\Log::info('Validation réussie');
 
-        return redirect()->route('tours.show', $tour)
-            ->with('success', 'Tournée créée avec succès.');
+            $tourData = [
+                'name' => $validated['name'],
+                'sector_id' => $validated['sector_id'],
+                'creator_id' => Auth::id(),
+                'status' => 'in_progress',
+                'start_date' => now(),
+                'notes' => $validated['notes'] ?? null,
+            ];
+            
+            // Ajouter session_id explicitement s'il est fourni dans le formulaire
+            if (isset($validated['session_id'])) {
+                $tourData['session_id'] = $validated['session_id'];
+                \Illuminate\Support\Facades\Log::info('Session ID inclus explicitement: ' . $validated['session_id']);
+            }
+            
+            $tour = Tour::create($tourData);
+            \Illuminate\Support\Facades\Log::info('Tournée créée avec l\'ID: ' . $tour->id);
+
+            if (isset($validated['user_ids'])) {
+                $tour->users()->attach($validated['user_ids']);
+                \Illuminate\Support\Facades\Log::info('Utilisateurs associés');
+            }
+        
+            // Récupérer les numéros de maisons à revisiter du même secteur
+            // Regrouper par street_id et number pour éviter les doublons
+            $housesToRevisit = HouseNumber::where('status', 'to_revisit')
+                ->whereHas('tour', function ($query) use ($validated) {
+                    $query->where('sector_id', $validated['sector_id']);
+                })
+                ->whereHas('street', function ($query) use ($validated) {
+                    $query->where('sector_id', $validated['sector_id']);
+                })
+                ->select('street_id', 'number', 'notes')
+                ->distinct()
+                ->get();
+                
+            \Illuminate\Support\Facades\Log::info('Nombre de maisons à revisiter: ' . $housesToRevisit->count());
+                
+            // Vérifier si chaque maison à revisiter existe déjà dans la nouvelle tournée avant de la créer
+            foreach ($housesToRevisit as $house) {
+                // Vérifier si cette combinaison n'existe pas déjà dans la nouvelle tournée
+                $exists = HouseNumber::where('tour_id', $tour->id)
+                    ->where('street_id', $house->street_id)
+                    ->where('number', $house->number)
+                    ->exists();
+                    
+                if (!$exists) {
+                    HouseNumber::create([
+                        'tour_id' => $tour->id,
+                        'street_id' => $house->street_id,
+                        'number' => $house->number,
+                        'status' => 'to_revisit',
+                        'notes' => $house->notes
+                    ]);
+                }
+            }
+
+            \Illuminate\Support\Facades\Log::info('Redirection vers la page de la tournée');
+            return redirect()->route('tours.show', $tour)
+                ->with('success', 'Tournée créée avec succès.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Erreur lors de la création de la tournée: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error($e->getTraceAsString());
+            
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'Une erreur s\'est produite lors de la création de la tournée: ' . $e->getMessage()]);
+        }
     }
 
     /**
