@@ -57,31 +57,31 @@ Route::middleware(['auth', 'verified', 'approved'])->group(function () {
 });
 
 // Admin routes
-Route::middleware(['auth', 'verified', 'approved', 'can:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'approved', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     // Sectors
     Route::controller(SectorController::class)->group(function () {
-        Route::get('/sectors', 'index')->name('sectors.index')->middleware('can:manageSectors');
-        Route::get('/sectors/create', 'create')->name('sectors.create')->middleware('can:manageSectors');
-        Route::post('/sectors', 'store')->name('sectors.store')->middleware('can:manageSectors');
-        Route::get('/sectors/{sector}', 'show')->name('sectors.show')->middleware('can:manageSectors');
-        Route::get('/sectors/{sector}/edit', 'edit')->name('sectors.edit')->middleware('can:manageSectors');
-        Route::put('/sectors/{sector}', 'update')->name('sectors.update')->middleware('can:manageSectors');
-        Route::delete('/sectors/{sector}', 'destroy')->name('sectors.destroy')->middleware('can:manageSectors');
+        Route::get('/sectors', 'index')->name('sectors.index');
+        Route::get('/sectors/create', 'create')->name('sectors.create');
+        Route::post('/sectors', 'store')->name('sectors.store');
+        Route::get('/sectors/{sector}', 'show')->name('sectors.show');
+        Route::get('/sectors/{sector}/edit', 'edit')->name('sectors.edit');
+        Route::put('/sectors/{sector}', 'update')->name('sectors.update');
+        Route::delete('/sectors/{sector}', 'destroy')->name('sectors.destroy');
     });
     
     // Streets
     Route::controller(StreetController::class)->group(function () {
-        Route::get('/streets', 'index')->name('streets.index')->middleware('can:manageStreets');
-        Route::get('/streets/create', 'create')->name('streets.create')->middleware('can:manageStreets');
-        Route::post('/streets', 'store')->name('streets.store')->middleware('can:manageStreets');
-        Route::get('/streets/{street}', 'show')->name('streets.show')->middleware('can:manageStreets');
-        Route::get('/streets/{street}/edit', 'edit')->name('streets.edit')->middleware('can:manageStreets');
-        Route::put('/streets/{street}', 'update')->name('streets.update')->middleware('can:manageStreets');
-        Route::delete('/streets/{street}', 'destroy')->name('streets.destroy')->middleware('can:manageStreets');
+        Route::get('/streets', 'index')->name('streets.index');
+        Route::get('/streets/create', 'create')->name('streets.create');
+        Route::post('/streets', 'store')->name('streets.store');
+        Route::get('/streets/{street}', 'show')->name('streets.show');
+        Route::get('/streets/{street}/edit', 'edit')->name('streets.edit');
+        Route::put('/streets/{street}', 'update')->name('streets.update');
+        Route::delete('/streets/{street}', 'destroy')->name('streets.destroy');
     });
     
     // Route spéciale pour créer une rue liée à un secteur spécifique
-    Route::get('/sectors/{sector}/streets/create', [StreetController::class, 'createForSector'])->name('sectors.streets.create')->middleware('can:manageStreets');
+    Route::get('/sectors/{sector}/streets/create', [StreetController::class, 'createForSector'])->name('sectors.streets.create');
 });
 
 require __DIR__.'/auth.php';
