@@ -18,11 +18,7 @@
                     <x-nav-link :href="route('tours.index')" :active="request()->routeIs('tours.*')">
                         {{ __('Tournées') }}
                     </x-nav-link>
-                    @can('viewUsers')
-                    <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
-                        {{ __('Utilisateurs') }}
-                    </x-nav-link>
-                    @endcan
+                    {{-- Lien vers la gestion des utilisateurs supprimé --}}
                     @can('manageSectors')
                     <x-nav-link :href="route('admin.sectors.index')" :active="request()->routeIs('admin.sectors.*')">
                         {{ __('Secteurs') }}
@@ -91,11 +87,7 @@
             <x-responsive-nav-link :href="route('tours.index')" :active="request()->routeIs('tours.*')">
                 {{ __('Tournées') }}
             </x-responsive-nav-link>
-            @can('viewUsers')
-            <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
-                {{ __('Utilisateurs') }}
-            </x-responsive-nav-link>
-            @endcan
+            {{-- Lien mobile vers la gestion des utilisateurs supprimé --}}
             @can('manageSectors')
             <x-responsive-nav-link :href="route('admin.sectors.index')" :active="request()->routeIs('admin.sectors.*')">
                 {{ __('Secteurs') }}

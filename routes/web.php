@@ -46,14 +46,7 @@ Route::middleware(['auth', 'verified', 'approved'])->group(function () {
         Route::patch('/tours/{tour}/complete', 'complete')->name('tours.complete');
     });
 
-    // Users routes
-    Route::controller(UserController::class)->group(function () {
-        Route::get('/users', 'index')->name('users.index');
-        Route::put('/users/{user}/approve', 'approve')->name('users.approve');
-        Route::delete('/users/{user}/reject', 'reject')->name('users.reject');
-        Route::put('/users/{user}/assign-admin', 'assignAdmin')->name('users.assign-admin');
-        Route::put('/users/{user}/remove-admin', 'removeAdmin')->name('users.remove-admin');
-    });
+    // Users routes supprimées
 });
 
 // Admin routes
