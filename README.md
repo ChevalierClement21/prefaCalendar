@@ -43,20 +43,14 @@ cd prefaCalendar
 composer install
 ```
 
-3. **Installer les dépendances JavaScript**
-
-```bash
-npm install
-```
-
-4. **Configurer l'environnement**
+3. **Configurer l'environnement**
 
 ```bash
 cp .env.example .env
 php artisan key:generate
 ```
 
-5. **Configurer la base de données**
+4. **Configurer la base de données**
 
 Modifiez le fichier `.env` pour configurer l'accès à votre base de données :
 
@@ -69,15 +63,23 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-6. **Exécuter les migrations et les seeders**
+5. **Exécuter les migrations et configurer Bouncer**
 
 ```bash
-php artisan migrate --seed
+php artisan migrate
+composer run-script setup-bouncer
 ```
 
-7. **Compiler les assets**
+6. **Créer un utilisateur administrateur**
 
 ```bash
+php artisan app:create-admin
+```
+
+7. **Installer les dépendances JavaScript et compiler les assets**
+
+```bash
+npm install
 npm run dev
 ```
 
