@@ -12,8 +12,15 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withCommands([
         \App\Console\Commands\CreateAdmin::class,
+        \App\Console\Commands\AssignAdminRole::class,
     ])
     ->withMiddleware(function (Middleware $middleware) {
+        // Middleware globaux - uniquement ceux nécessaires
+        // $middleware->use([
+        //     // Middlewares globaux si nécessaire
+        // ]);
+        
+        // Définition minimale des middlewares pour Laravel 12
         $middleware->alias([
             'approved' => \App\Http\Middleware\EnsureUserIsApproved::class,
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
