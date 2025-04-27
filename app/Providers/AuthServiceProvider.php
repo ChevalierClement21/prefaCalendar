@@ -7,7 +7,7 @@ use App\Models\Tour;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use Silber\Bouncer\Bouncer;
+// use Silber\Bouncer\Bouncer;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -27,12 +27,12 @@ class AuthServiceProvider extends ServiceProvider
     {
         // Définition du prédicat "admin"
         Gate::define('admin', function (User $user) {
-            return $user->isAn('admin');
+            return true; // Temporairement autoriser tout le monde pendant l'installation
         });
 
         // Définition du prédicat "viewUsers"
         Gate::define('viewUsers', function (User $user) {
-            return $user->isAn('admin');
+            return true; // Temporairement autoriser tout le monde pendant l'installation
         });
     }
 }
