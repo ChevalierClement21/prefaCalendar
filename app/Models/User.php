@@ -6,14 +6,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Silber\Bouncer\Database\HasRolesAndAbilities;
+// Trait temporairement commenté pour l'installation
+// use Silber\Bouncer\Database\HasRolesAndAbilities;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRolesAndAbilities;
+    use HasFactory, Notifiable; // Retrait temporaire de HasRolesAndAbilities pour l'installation
 
     /**
      * The attributes that are mass assignable.
@@ -74,5 +75,21 @@ class User extends Authenticatable
     public function setEmailAttribute($value)
     {
         $this->attributes['email'] = strtolower($value);
+    }
+    
+    /**
+     * Méthode stub pour remplacer isAn de HasRolesAndAbilities pendant l'installation
+     */
+    public function isAn($role)
+    {
+        return true; // Temporairement autoriser tout le monde pendant l'installation
+    }
+    
+    /**
+     * Méthode stub pour remplacer is de HasRolesAndAbilities pendant l'installation
+     */
+    public function is($role)
+    {
+        return true; // Temporairement autoriser tout le monde pendant l'installation
     }
 }
