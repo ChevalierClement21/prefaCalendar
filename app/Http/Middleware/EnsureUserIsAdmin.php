@@ -6,7 +6,6 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
-use Silber\Bouncer\BouncerFacade as Bouncer;
 
 class EnsureUserIsAdmin
 {
@@ -22,7 +21,7 @@ class EnsureUserIsAdmin
             return $next($request);
         }
         
-        if (!Auth::check() || !Auth::user()->isAn('admin') || !Auth::user()->can('access-admin-panel')) {
+        if (!Auth::check() || !Auth::user()->hasRole('admin')) {
             if ($request->expectsJson()) {
                 return response()->json(['error' => 'Unauthorized. Admin access required.'], 403);
             }

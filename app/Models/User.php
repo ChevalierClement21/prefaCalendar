@@ -81,38 +81,12 @@ class User extends Authenticatable
      * Détermine si l'utilisateur a un rôle spécifique.
      * Pendant les tests, cette méthode retourne toujours true.
      */
-    public function isAn($role)
+    public function hasRole($role)
     {
         if (app()->environment('testing')) {
             return true;
         }
         
-        return parent::isAn($role);
-    }
-    
-    /**
-     * Détermine si l'utilisateur a un rôle spécifique.
-     * Pendant les tests, cette méthode retourne toujours true.
-     */
-    public function is($role)
-    {
-        if (app()->environment('testing')) {
-            return true;
-        }
-        
-        return parent::is($role);
-    }
-    
-    /**
-     * Détermine si l'utilisateur peut effectuer une action spécifique.
-     * Pendant les tests, cette méthode retourne toujours true.
-     */
-    public function can($ability, $arguments = [])
-    {
-        if (app()->environment('testing')) {
-            return true;
-        }
-        
-        return parent::can($ability, $arguments);
+        return $this->roles()->where('name', $role)->exists();
     }
 }

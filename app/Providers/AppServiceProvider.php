@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Models\Tour;
 use App\Observers\TourObserver;
+use App\Helpers\RoleHelper;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Blade;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,6 +26,16 @@ class AppServiceProvider extends ServiceProvider
     {
         // Enregistrer l'observateur de tournée
         Tour::observe(TourObserver::class);
+        
+        // Enregistrer les directives Blade personnalisées
+        Blade::if('admin', function () {
+            return RoleHelper::isAdmin();
+        });
+        
+        Blade::if('role', function ($role) {
+            return RoleHelper::hasRole($role);
+        });
+        
         
         // Définir des autorisations accessibles à tous les utilisateurs authentifiés
         Gate::define('view-any-tours', function ($user) {

@@ -1,13 +1,24 @@
 <?php
 
 return [
+    /*
+    |--------------------------------------------------------------------------
+    | Cache Driver
+    |--------------------------------------------------------------------------
+    |
+    | This value determines which cache driver Bouncer will use to cache
+    | permissions and role checks. The "null" driver will use nothing.
+    |
+    */
+
+    'cache' => null,
 
     /*
     |--------------------------------------------------------------------------
-    | Bouncer Database Tables
+    | Tables
     |--------------------------------------------------------------------------
     |
-    | Customize the names of the tables for abilities, roles, and their assignment.
+    | These are the tables that Bouncer will use to store roles and abilities.
     |
     */
 
@@ -20,17 +31,15 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Bouncer Cache
+    | Models
     |--------------------------------------------------------------------------
     |
-    | Configure the ability check caching settings for Bouncer.
+    | These are the models that Bouncer will use to store roles and abilities.
     |
     */
 
-    'cache' => [
-        'enabled' => true,
-        'store' => null,
-        'prefix' => 'bouncer',
+    'models' => [
+        'ability' => \Silber\Bouncer\Database\Ability::class,
+        'role' => \Silber\Bouncer\Database\Role::class,
     ],
-
 ];

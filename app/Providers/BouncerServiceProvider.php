@@ -12,7 +12,7 @@ class BouncerServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Dans Laravel 12, Bouncer est enregistré automatiquement par le package lui-même
     }
 
     /**

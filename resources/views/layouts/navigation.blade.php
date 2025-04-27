@@ -19,16 +19,16 @@
                         {{ __('Tournées') }}
                     </x-nav-link>
                     {{-- Lien vers la gestion des utilisateurs supprimé --}}
-                    @can('manageSectors')
+                    @admin
                     <x-nav-link :href="route('admin.sectors.index')" :active="request()->routeIs('admin.sectors.*')">
                         {{ __('Secteurs') }}
                     </x-nav-link>
-                    @endcan
-                    @can('manageStreets')
+                    @endadmin
+                    @admin
                     <x-nav-link :href="route('admin.streets.index')" :active="request()->routeIs('admin.streets.*')">
                         {{ __('Rues') }}
                     </x-nav-link>
-                    @endcan
+                    @endadmin
                 </div>
             </div>
 
@@ -88,16 +88,16 @@
                 {{ __('Tournées') }}
             </x-responsive-nav-link>
             {{-- Lien mobile vers la gestion des utilisateurs supprimé --}}
-            @can('manageSectors')
+            @admin
             <x-responsive-nav-link :href="route('admin.sectors.index')" :active="request()->routeIs('admin.sectors.*')">
                 {{ __('Secteurs') }}
             </x-responsive-nav-link>
-            @endcan
-            @can('manageStreets')
+            @endadmin
+            @admin
             <x-responsive-nav-link :href="route('admin.streets.index')" :active="request()->routeIs('admin.streets.*')">
                 {{ __('Rues') }}
             </x-responsive-nav-link>
-            @endcan
+            @endadmin
         </div>
 
         <!-- Responsive Settings Options -->
