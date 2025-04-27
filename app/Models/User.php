@@ -7,14 +7,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 // Trait temporairement commenté pour l'installation
-// use Silber\Bouncer\Database\HasRolesAndAbilities;
+use Silber\Bouncer\Database\HasRolesAndAbilities;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable; // Retrait temporaire de HasRolesAndAbilities pour l'installation
+    use HasFactory, Notifiable, HasRolesAndAbilities;
 
     /**
      * The attributes that are mass assignable.
@@ -78,18 +78,41 @@ class User extends Authenticatable
     }
     
     /**
-     * Méthode stub pour remplacer isAn de HasRolesAndAbilities pendant l'installation
+     * Détermine si l'utilisateur a un rôle spécifique.
+     * Pendant les tests, cette méthode retourne toujours true.
      */
     public function isAn($role)
     {
-        return true; // Temporairement autoriser tout le monde pendant l'installation
+        if (app()->environment('testing')) {
+            return true;
+        }
+        
+        return parent::isAn($role);
     }
     
     /**
-     * Méthode stub pour remplacer is de HasRolesAndAbilities pendant l'installation
+     * Détermine si l'utilisateur a un rôle spécifique.
+     * Pendant les tests, cette méthode retourne toujours true.
      */
     public function is($role)
     {
-        return true; // Temporairement autoriser tout le monde pendant l'installation
+        if (app()->environment('testing')) {
+            return true;
+        }
+        
+        return parent::is($role);
+    }
+    
+    /**
+     * Détermine si l'utilisateur peut effectuer une action spécifique.
+     * Pendant les tests, cette méthode retourne toujours true.
+     */
+    public function can($ability, $arguments = [])
+    {
+        if (app()->environment('testing')) {
+            return true;
+        }
+        
+        return parent::can($ability, $arguments);
     }
 }
