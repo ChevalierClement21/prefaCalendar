@@ -210,6 +210,17 @@ class TourController extends Controller
             'notes' => 'nullable|string',
         ]);
 
+        // Vérifier d'abord si ce numéro existe déjà dans la tournée actuelle
+        $existingInCurrentTour = HouseNumber::where('tour_id', $tour->id)
+            ->where('street_id', $validated['street_id'])
+            ->where('number', $validated['number'])
+            ->first();
+            
+        if ($existingInCurrentTour) {
+            return redirect()->route('tours.show', $tour)
+                ->with('error', 'Ce numéro de maison existe déjà dans cette tournée.');
+        }
+
         // Vérifier si la tournée est associée à une session
         // Si c'est le cas, nous utiliserons uniquement les numéros de rue de cette session
         if ($tour->session_id) {
